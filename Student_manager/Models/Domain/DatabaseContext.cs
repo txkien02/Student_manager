@@ -11,8 +11,8 @@ namespace Student_manager.Models.Domain
 
         public DbSet<Class>?Classes { get; set; }
         public DbSet<TokenInfo> TokenInfo { get; set; }
-        public DbSet<Subject> Subjects { get; set; }
-        public DbSet<SubjectInfo> SubjectInfos { get; set; }
+        //public DbSet<Subject> Subjects { get; set; }
+        //public DbSet<SubjectInfo> SubjectInfos { get; set; }
 
     }
 }

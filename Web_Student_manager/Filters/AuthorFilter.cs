@@ -32,27 +32,37 @@ namespace Web_Student_manager.Filters
         {
             var httpContext = context.HttpContext; // Lấy HttpContext từ AuthorizationFilterContext
             var httpClient = _httpClientFactory.CreateClient();
-            string jwtToken = httpContext.Session.GetString("JWToken");
-            if(jwtToken.
-            httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwtToken);
-
-            var response = await httpClient.GetAsync("https://localhost:7164/api/Authorization/GetRole");
-
-            if (response.IsSuccessStatusCode)
+            if (httpContext.Session.TryGetValue("JWToken", out byte[] tokenBytes))
             {
-                // Kiểm tra xác thực và vai trò từ phản hồi API
-                var apiResponse = await response.Content.ReadAsStringAsync();
+                var jwtToken = Encoding.UTF8.GetString(tokenBytes);
 
-                if (apiResponse == _role)
+                httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwtToken);
+
+                var response = await httpClient.GetAsync("https://localhost:7164/api/Authorization/GetRole");
+
+                if (response.IsSuccessStatusCode)
                 {
-                    // Điều kiện cho vai trò phù hợp
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse); 
+
+                    if (apiResponse.Message == _role)
+                    {
+                        // Điều kiện cho vai trò phù hợp
+                    }
+                    else
+                    {
+                        context.Result = new UnauthorizedResult(); // Không có vai trò phù hợp, trả về lỗi 401 Unauthorized
+                        context.HttpContext.Response.Redirect("/Login/Index"); // Chuyển hướng đến trang đăng nhập
+                        return;
+                    }
                 }
                 else
                 {
-                    context.Result = new UnauthorizedResult(); // Không có vai trò phù hợp, trả về lỗi 401 Unauthorized
+                    context.Result = new UnauthorizedResult(); // Không xác thực, trả về lỗi 401 Unauthorized
                     context.HttpContext.Response.Redirect("/Login/Index"); // Chuyển hướng đến trang đăng nhập
                     return;
                 }
+
             }
             else
             {
