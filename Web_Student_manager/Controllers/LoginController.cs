@@ -4,6 +4,8 @@ using Data.Models.DTO;
 using System.Drawing.Imaging;
 using Newtonsoft.Json;
 using System.Text;
+using System.Net.Http;
+using System.Reflection;
 
 namespace Web_Student_manager.Controllers
 {
@@ -16,8 +18,32 @@ namespace Web_Student_manager.Controllers
             _httpClientFactory = httpClientFactory;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            var httpClient = _httpClientFactory.CreateClient();
+            var jwToken = GetTokenFromSession();
+            if (!string.IsNullOrEmpty(jwToken))
+            {
+                httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+                var response = await httpClient.GetAsync("https://localhost:7164/api/Authorization/GetRole");
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+                    var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
+
+                 
+                    if (apiResponse.Message == "Admin")
+                    {
+                        return RedirectToAction("Index", "Admin");
+                    }
+                    else if (apiResponse.Message == "User")
+                    {
+                        return RedirectToAction("Index", "User");
+                    }
+
+                }
+            }
+
             return View();
         }
 
@@ -59,7 +85,7 @@ namespace Web_Student_manager.Controllers
                     }
                     else if (apiResponse.Role == "User")
                     {
-                        return RedirectToAction("UserPage", "Home");
+                        return RedirectToAction("Index", "User");
                     }
                 }
                 else
@@ -77,6 +103,15 @@ namespace Web_Student_manager.Controllers
             }
 
             return View();
+        }
+
+        private string GetTokenFromSession()
+        {
+            // Lấy token từ session bằng cách sử dụng IHttpContextAccessor
+            var session = HttpContext.Session;
+            var token = session.GetString("JWToken");
+
+            return string.IsNullOrEmpty(token) ? string.Empty : token;
         }
     }
 }

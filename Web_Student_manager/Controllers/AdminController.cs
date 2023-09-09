@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Rewrite;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Data;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using Web_Student_manager.Filters;
 
@@ -21,70 +23,94 @@ namespace Web_Student_manager.Controllers
         public AdminController(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _httpClient.BaseAddress = new Uri("https://localhost:7164/api/Admin"); // Thay đổi địa chỉ API thật của bạn
+            _httpClient.BaseAddress = new Uri("https://localhost:7164/api/Admin/"); // Thay đổi địa chỉ API thật của bạn
         }
         public async Task<ActionResult> Index()
         {
-            var httpContext = context.HttpContext; // Lấy HttpContext từ AuthorizationFilterContext
-            var httpClient = _httpClientFactory.CreateClient();
-            if (httpContext.Session.TryGetValue("JWToken", out byte[] tokenBytes))
+
+            var jwToken = GetTokenFromSession();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+
+
+            var response = await _httpClient.GetAsync("GetAllClass");
+
+            if (response.IsSuccessStatusCode)
             {
-                var jwtToken = Encoding.UTF8.GetString(tokenBytes);
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<IEnumerable<ClassModel>>(jsonResponse);
 
-                httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwtToken);
-
-                var response = await httpClient.GetAsync("https://localhost:7164/api/Authorization/GetRole");
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var jsonResponse = await response.Content.ReadAsStringAsync();
-                    var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
-
-                    
-                }
-                else
-                {
-                    context.Result = new UnauthorizedResult(); // Không xác thực, trả về lỗi 401 Unauthorized
-                    context.HttpContext.Response.Redirect("/Login/Index"); // Chuyển hướng đến trang đăng nhập
-                    return;
-                }
+                return View(apiResponse);
 
             }
-            else
-            {
-                context.Result = new UnauthorizedResult(); // Không xác thực, trả về lỗi 401 Unauthorized
-                context.HttpContext.Response.Redirect("/Login/Index"); // Chuyển hướng đến trang đăng nhập
-                return;
-            }
+            return View(null);
+        }
+
+        public IActionResult CreateClass()
+        {
             return View();
         }
 
         [HttpPost]
-        public IActionResult Create(ClassModel newClass)
+        public async Task<IActionResult> CreateClass(ClassModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                // Thêm lớp học vào cơ sở dữ liệu
-                // Cập nhật tổng số học sinh sau khi thêm
-                // Redirect đến trang danh sách lớp học
+                return View(model); // Trả về view với thông tin lỗi nếu ModelState không hợp lệ.
             }
-            return View(newClass);
+
+            var jwToken = GetTokenFromSession();
+            if (string.IsNullOrEmpty(jwToken))
+            {
+                return RedirectToAction("Login", "Account"); // Hoặc điều hướng đến trang đăng nhập nếu không có token.
+            }
+
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+
+            var content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("CreateClass", content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                // Xử lý khi tạo lớp học thành công
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                // Xử lý khi có lỗi từ API
+                // Ví dụ: lấy thông báo lỗi từ API
+                var errorResponse = await response.Content.ReadAsStringAsync();
+                var errorMessage = JsonConvert.DeserializeAnonymousType(errorResponse, new { Message = "" });
+                ModelState.AddModelError(string.Empty, errorMessage.Message);
+                return View(model);
+            }
+        }
+
+        public IActionResult EditClass(int id)
+        {
+            return View();
         }
 
         // Action để sửa thông tin lớp học
         [HttpPost]
-        public IActionResult Edit(ClassModel editedClass)
+        public async Task<IActionResult> Edit(int id,ClassModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                // Cập nhật thông tin lớp học trong cơ sở dữ liệu
-                // Redirect đến trang danh sách lớp học
+                return View(model); // Trả về view với thông tin lỗi nếu ModelState không hợp lệ.
             }
-            return View(editedClass);
+            return View(model);
         }
 
-        
+        private string GetTokenFromSession()
+        {
+            // Lấy token từ session bằng cách sử dụng IHttpContextAccessor
+            var session = HttpContext.Session;
+            var token = session.GetString("JWToken");
+
+            return string.IsNullOrEmpty(token) ? string.Empty : token;
+        }
+    }   
 
 
-    }
+    
 }
