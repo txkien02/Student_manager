@@ -15,7 +15,7 @@ using Web_Student_manager.Filters;
 namespace Web_Student_manager.Controllers
 {
 
-    [AuthorFilterFilter("Admin")]
+    [AuthorFilter("Admin")]
     public class AdminController : Controller
     {
         // GET: AdminController
@@ -165,6 +165,11 @@ namespace Web_Student_manager.Controllers
             }
 
             
+        }
+
+        public IActionResult Student_Index()
+        {
+            return View();
         }
 
         private string GetTokenFromSession()

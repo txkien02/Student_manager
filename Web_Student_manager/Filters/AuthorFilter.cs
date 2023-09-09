@@ -9,9 +9,9 @@ using System.Text;
 namespace Web_Student_manager.Filters
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false)]
-    public class AuthorFilterFilterAttribute : TypeFilterAttribute
+    public class AuthorFilterAttribute : TypeFilterAttribute
     {
-        public AuthorFilterFilterAttribute(string role) : base(typeof(AuthorFilter))
+        public AuthorFilterAttribute(string role) : base(typeof(AuthorFilter))
         {
             Arguments = new object[] { role };
         }

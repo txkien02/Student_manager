@@ -38,7 +38,7 @@ namespace Web_Student_manager.Controllers
                     }
                     else if (apiResponse.Message == "User")
                     {
-                        return RedirectToAction("Index", "User");
+                            return RedirectToAction("Index", "User");
                     }
 
                 }
