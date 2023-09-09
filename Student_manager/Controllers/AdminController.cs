@@ -38,6 +38,21 @@ namespace Student_manager.Controllers
             var listClass = await _context.Classes.ToListAsync();
             return Ok(listClass);
         }
+        [HttpGet("GetClass/{id}")]
+        public async Task<IActionResult> GetClass(int id)
+        {
+            var classItem = await _context.Classes.FirstOrDefaultAsync(o => o.Id == id);
+            if (classItem != null)
+            {
+                // Class with the specified ID was found. You can return it or process it further.
+                return Ok(classItem);
+            }
+            else
+            {
+                // Class with the specified ID was not found. You can return a 404 Not Found response.
+                return BadRequest("NotFound");
+            }
+        }
         [HttpPost("CreateClass")]
         public async Task<IActionResult> CreateClass([FromBody] ClassModel model)
         {

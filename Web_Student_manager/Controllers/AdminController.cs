@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Rewrite;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Common;
 using System.Data;
 using System.Net.Http;
 using System.Reflection;
@@ -78,27 +79,92 @@ namespace Web_Student_manager.Controllers
             {
                 // Xử lý khi có lỗi từ API
                 // Ví dụ: lấy thông báo lỗi từ API
-                var errorResponse = await response.Content.ReadAsStringAsync();
-                var errorMessage = JsonConvert.DeserializeAnonymousType(errorResponse, new { Message = "" });
-                ModelState.AddModelError(string.Empty, errorMessage.Message);
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
+                ModelState.AddModelError(string.Empty, apiResponse.Message);
                 return View(model);
             }
         }
 
-        public IActionResult EditClass(int id)
+        public async Task<IActionResult> EditClass(int id)
         {
-            return View();
+            var jwToken = GetTokenFromSession();
+            if (string.IsNullOrEmpty(jwToken))
+            {
+                return RedirectToAction("Login", "Account"); // Hoặc điều hướng đến trang đăng nhập nếu không có token.
+            }
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+
+            var response = await _httpClient.GetAsync("GetClass/"+id);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<ClassModel>(jsonResponse);
+                return View(apiResponse);
+                
+            }
+            return RedirectToAction("Index");
         }
 
         // Action để sửa thông tin lớp học
         [HttpPost]
-        public async Task<IActionResult> Edit(int id,ClassModel model)
+        public async Task<IActionResult> EditClass(ClassModel model)
         {
             if (!ModelState.IsValid)
             {
                 return View(model); // Trả về view với thông tin lỗi nếu ModelState không hợp lệ.
             }
-            return View(model);
+
+            var jwToken = GetTokenFromSession();
+            if (string.IsNullOrEmpty(jwToken))
+            {
+                return RedirectToAction("Login", "Account"); // Hoặc điều hướng đến trang đăng nhập nếu không có token.
+            }
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+            var content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PutAsync("EditClass/" + model.Id, content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
+                ModelState.AddModelError(string.Empty, apiResponse.Message);
+                return View(model);
+            }
+
+            
+        }
+
+        public async Task<IActionResult> DeleteClass(int id)
+        {
+            var jwToken = GetTokenFromSession();
+            if (string.IsNullOrEmpty(jwToken))
+            {
+                return RedirectToAction("Login", "Account"); // Hoặc điều hướng đến trang đăng nhập nếu không có token.
+            }
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+
+            var response = await _httpClient.DeleteAsync("DeleteClass/" + id);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return RedirectToAction("Index");
+
+            }
+            else
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
+                ModelState.AddModelError(string.Empty, apiResponse.Message);
+                return View();
+            }
+
+            
         }
 
         private string GetTokenFromSession()
