@@ -53,6 +53,21 @@ namespace Student_manager.Controllers
                 return BadRequest("NotFound");
             }
         }
+        [HttpGet("GetStudent/{username}")]
+        public async Task<IActionResult> GetStudent(string UserName)
+        {
+            var User = await userManager.FindByNameAsync(UserName);
+            if (User != null)
+            {
+                // Class with the specified ID was found. You can return it or process it further.
+                return Ok(User);
+            }
+            else
+            {
+                // Class with the specified ID was not found. You can return a 404 Not Found response.
+                return BadRequest("NotFound");
+            }
+        }
         [HttpPost("CreateClass")]
         public async Task<IActionResult> CreateClass([FromBody] ClassModel model)
         {
@@ -169,13 +184,13 @@ namespace Student_manager.Controllers
         }
 
         [HttpGet("SearchStudents")]
-        public async Task<IActionResult> SearchStudents(string? UserName, string? Name, string? ClassID)
+        public async Task<IActionResult> SearchStudents(string? UserName, string? Name, int? ClassID)
         {
             var usersInRole = await userManager.GetUsersInRoleAsync("User"); // Replace "User" with the actual role name in your system
 
-            if (!string.IsNullOrWhiteSpace(ClassID))
+            if (ClassID != 0 && ClassID!=null)
             {
-                usersInRole = usersInRole.Where(s => s.ClassID == Convert.ToInt32(ClassID)).ToList();
+                usersInRole = usersInRole.Where(s => s.ClassID == ClassID).ToList();
             }
             if (!string.IsNullOrWhiteSpace(UserName))
             {
@@ -262,8 +277,8 @@ namespace Student_manager.Controllers
 
         }
 
-        [HttpPut("EditStudent/{UserName}")]
-        public async Task<IActionResult> EditStudent(string UserName, [FromBody] EditUserModel model)
+        [HttpPut("EditStudent/{username}")]
+        public async Task<IActionResult> EditStudent(string UserName, [FromBody] RegistrationModel model)
         {
             var status = new Status();
             var user = await userManager.FindByNameAsync(UserName);

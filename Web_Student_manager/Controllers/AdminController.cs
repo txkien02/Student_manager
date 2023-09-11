@@ -1,4 +1,5 @@
-﻿using Data.Models.DTO;
+﻿using Data.Models;
+using Data.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -6,10 +7,12 @@ using Microsoft.AspNetCore.Rewrite;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
+using System.Collections.Generic;
 using System.Data;
 using System.Net.Http;
 using System.Reflection;
 using System.Text;
+using System.Xml.Linq;
 using Web_Student_manager.Filters;
 
 namespace Web_Student_manager.Controllers
@@ -43,7 +46,14 @@ namespace Web_Student_manager.Controllers
                 return View(apiResponse);
 
             }
-            return View(null);
+            else
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
+                ViewData["error"] = apiResponse.Message;
+                return View(null);
+
+            }
         }
 
         public IActionResult CreateClass()
@@ -77,11 +87,9 @@ namespace Web_Student_manager.Controllers
             }
             else
             {
-                // Xử lý khi có lỗi từ API
-                // Ví dụ: lấy thông báo lỗi từ API
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
-                ModelState.AddModelError(string.Empty, apiResponse.Message);
+                ViewData["error"] = apiResponse.Message;
                 return View(model);
             }
         }
@@ -102,9 +110,15 @@ namespace Web_Student_manager.Controllers
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<ClassModel>(jsonResponse);
                 return View(apiResponse);
-                
+
             }
-            return RedirectToAction("Index");
+            else
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
+                ViewData["error"] = apiResponse.Message;
+                return RedirectToAction("Index");
+            }
         }
 
         // Action để sửa thông tin lớp học
@@ -133,14 +147,15 @@ namespace Web_Student_manager.Controllers
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
-                ModelState.AddModelError(string.Empty, apiResponse.Message);
+                ViewData["error"] = apiResponse.Message;
                 return View(model);
             }
 
             
         }
 
-        public async Task<IActionResult> DeleteClass(int id)
+        [HttpPost]
+        public async Task<IActionResult> Index(int id)
         {
             var jwToken = GetTokenFromSession();
             if (string.IsNullOrEmpty(jwToken))
@@ -164,12 +179,232 @@ namespace Web_Student_manager.Controllers
                 return View();
             }
 
+
+        }
+
+        public async Task<IActionResult> Student_Index()
+        {
+            var jwToken = GetTokenFromSession();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+
+
+            var response = await _httpClient.GetAsync("GetAllClass");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<IEnumerable<ClassModel>>(jsonResponse);
+
+                return View(apiResponse);
+
+            }
+            return View(null);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Student_Index(string searchOption, string searchValue, int classId)
+        {
+            string param ="";
+            if(searchOption== "studentId")
+            {
+                param += "UserName=" + searchValue;
+            }
+            else
+            {
+                param += "&Name=" + searchValue;
+            }
+            if(classId!= 0)
+            {
+                param += "&ClassID=" + classId;
+            }
+
+            var jwToken = GetTokenFromSession();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+
+            var response = await _httpClient.GetAsync("SearchStudents?" + param);
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<IEnumerable<RegistrationModel>>(jsonResponse);
+                ViewData["Student"] = apiResponse;
+
+
+
+                var classes = await getclasss();
+                return View(classes);
+            }
+            else
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
+                ViewData["error"] = apiResponse.Message;
+                return View((IEnumerable <ClassModel> )getclasss());
+            }
+           
+        }
+
+        public async Task<IActionResult> CreateStudent()
+        {
+            var jwToken = GetTokenFromSession();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+
+            var getclass = await getclasss();
+            ViewData["Class"] = (IEnumerable <Data.Models.DTO.ClassModel>) getclass;
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateStudent(RegistrationModel model)
+        {
+            IFormFile img = Request.Form.Files["img"];
+            if (img != null && img.Length > 0)
+            {
+                // Đọc dữ liệu từ tệp hình ảnh và chuyển đổi thành mảng byte
+                byte[] imageBytes;
+                using (var memoryStream = new MemoryStream())
+                {
+                    img.CopyTo(memoryStream);
+                    imageBytes = memoryStream.ToArray();
+                }
+                model.Avatar = imageBytes;
+            }
+
+            var jwToken = GetTokenFromSession();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+
+            var content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("AddStudent",content);
+            if (response.IsSuccessStatusCode)
+            {
+
+                return RedirectToAction("Student_Index");
+            }
+            else
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
+                ViewData["error"] = apiResponse.Message;
+                
+                return View((IEnumerable<ClassModel>)getclasss());
+            }
+
+
             
         }
 
-        public IActionResult Student_Index()
+        public async Task<IActionResult> EditStudent(string UserName)
         {
-            return View();
+
+            var jwToken = GetTokenFromSession();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+
+
+            var response = await _httpClient.GetAsync("GetStudent/" + UserName);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<RegistrationModel>(jsonResponse);
+                
+                var getclass = await getclasss();
+                ViewData["Class"] = (IEnumerable<Data.Models.DTO.ClassModel>)getclass;
+                return View(apiResponse);
+
+            }
+            else
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
+                ViewData["error"] = apiResponse.Message;
+                return View(null);
+
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> EditStudent(RegistrationModel model) {
+
+            
+
+            IFormFile img = Request.Form.Files["img"];
+            if (img != null && img.Length > 0)
+            {
+                // Đọc dữ liệu từ tệp hình ảnh và chuyển đổi thành mảng byte
+                byte[] imageBytes;
+                using (var memoryStream = new MemoryStream())
+                {
+                    img.CopyTo(memoryStream);
+                    imageBytes = memoryStream.ToArray();
+                }
+                model.Avatar = imageBytes;
+            }
+
+            
+            var jwToken = GetTokenFromSession();
+            var content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+            var response = await _httpClient.PutAsync("EditStudent/"+model.UserName, content);
+            if (response.IsSuccessStatusCode)
+            {
+                return RedirectToAction("Student_Index");
+            }
+            else
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
+                ViewData["error"] = apiResponse.Message;
+                var getclass = await getclasss();
+                ViewData["Class"] = (IEnumerable<Data.Models.DTO.ClassModel>)getclass;
+                return View(model);
+            }
+
+        }
+
+
+
+        
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteStudent(string UserName)
+        {
+            var jwToken = GetTokenFromSession();
+            if (string.IsNullOrEmpty(jwToken))
+            {
+                return RedirectToAction("Login", "Account"); // Hoặc điều hướng đến trang đăng nhập nếu không có token.
+            }
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+
+            var response = await _httpClient.DeleteAsync("DeleteStudent/" + UserName);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return RedirectToAction("Student_Index");
+
+            }
+            else
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
+                ViewData["error"] = apiResponse.Message;
+
+                return RedirectToAction("Student_Index");
+            }
+
+
+        }
+        private async Task<IEnumerable<ClassModel>> getclasss()
+        {
+
+            var response = await _httpClient.GetAsync("GetAllClass");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<IEnumerable<ClassModel>>(jsonResponse);
+
+                return apiResponse;
+
+            }
+            return null;
         }
 
         private string GetTokenFromSession()

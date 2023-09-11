@@ -1,4 +1,4 @@
-﻿namespace Student_manager.Models.DTO
+﻿namespace Data.Models.DTO
 {
     public class BasicInfoModel
     {

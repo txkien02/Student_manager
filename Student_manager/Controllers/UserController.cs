@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Student_manager.Models.Domain;
 using Data.Models.DTO;
 using System.Data;
-using Student_manager.Models.DTO;
 
 namespace Student_manager.Controllers
 {
@@ -30,8 +29,8 @@ namespace Student_manager.Controllers
 
 
             var status = new Status();
-
-            var user = await userManager.FindByNameAsync(UserName);
+            var usersInRole = await userManager.GetUsersInRoleAsync("User");
+            var user = usersInRole.FirstOrDefault(o=> o.UserName == UserName);
             if (user == null)
             {
                 status.StatusCode = 0;

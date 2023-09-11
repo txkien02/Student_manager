@@ -1,0 +1,156 @@
+﻿@model Data.Models.DTO.RegistrationModel
+
+@{
+    ViewData["Title"] = "EditStudent";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    var classes = ViewData["Class"] as IEnumerable<Data.Models.DTO.ClassModel>;
+}
+@{
+    if (ViewData["error"] != null)
+    {
+        <a>@ViewData["error"]</a>
+    }
+}
+
+<h1>EditStudent</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="EditStudent" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group form-check">
+                <div class="form-group">
+                    <label for="img">Avatar</label>
+                    <input type="file" class="form-control" name="img" id="imgInput" accept="image/*" />
+                </div>
+                <div class="form-group">
+                    <img id="uploadedImage" src="data:image/jpeg;base64,@Convert.ToBase64String(Model.Avatar)" alt="Hình ảnh tải lên" style="max-width: 300px;" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="UserName" class="control-label"></label>
+                <input asp-for="UserName" value=@Model.UserName class="form-control" readonly />
+                <span asp-validation-for="UserName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" value=@Model.Name class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" value=@Model.Email class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DOB" class="control-label"></label>
+                <input asp-for="DOB" value="@Model.DOB.ToString("yyyy-MM-dd")" class="form-control" type="date" />
+                <span asp-validation-for="DOB" class="text-danger"></span>
+            </div>
+            <div>
+                <label asp-for="Gender">Gender:</label>
+                <select asp-for="Gender" value=@Model.Gender id="Gender" name="Gender" required>
+                    @Html.DisplayNameFor(model => model.Gender)
+                    <option value="0">Male</option>
+                    <option value="1">Female</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Address" class="control-label"></label>
+                <input asp-for="Address" value=@Model.Address class="form-control" />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+            <div class="form-group"> 
+                <label asp-for="Status" class="form-check-label">Status</label>
+                <input class="form-check-input" asp-for="Status" value=@Model.Status />
+                <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Password" class="control-label"></label>
+                <input asp-for="Password" type="password" class="form-control" />
+                <span asp-validation-for="Password"  class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PasswordConfirm" class="control-label"></label>
+                <input asp-for="PasswordConfirm" type="password" class="form-control" />
+                <span asp-validation-for="PasswordConfirm" class="text-danger"></span>
+            </div>
+            <div>
+                @if (classes != null)
+                {
+                    <label for="classDropdown">Lớp:</label>
+                    <select id="classDropdown" value=@Model.ClassID asp-for="ClassID">
+                        <option value="">Tất cả</option>
+
+                        @foreach (var cls in classes)
+                        {
+                            <option value="@cls.Id">@cls.Name</option>
+                        }
+                    </select>
+
+                }
+                else
+                {
+                    <p>Danh sách lớp rỗng hoặc không tồn tại.</p>
+                }
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Student_Index">Back to List</a>
+</div>
+
+<script>
+    // Lắng nghe sự kiện khi người dùng chọn tệp hình ảnh
+    document.getElementById('imgInput').addEventListener('change', function (event) {
+        var fileInput = event.target;
+        var uploadedImage = document.getElementById('uploadedImage');
+
+        if (fileInput.files && fileInput.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                // Hiển thị hình ảnh sau khi tải lên
+                uploadedImage.src = e.target.result;
+                uploadedImage.style.display = 'block'; // Hiển thị hình ảnh
+            };
+
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            // Ẩn hình ảnh nếu không có tệp nào được chọn
+            uploadedImage.src = '';
+            uploadedImage.style.display = 'none';
+        }
+    });
+    function validatePassword() {
+        var password = document.getElementById('Password').value;
+        var passwordConfirm = document.getElementById('PasswordConfirm').value;
+
+        if (password !== passwordConfirm) {
+            alert("Mật khẩu và xác nhận mật khẩu phải trùng khớp.");
+            return false;
+        }
+
+        return true;
+    }
+    function previewImage(input) {
+        var uploadedImage = document.getElementById("uploadedImage");
+        uploadedImage.style.display = "block";
+
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                uploadedImage.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+
+</script>

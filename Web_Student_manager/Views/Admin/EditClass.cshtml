@@ -2,6 +2,14 @@
 
 @{
     ViewData["Title"] = "EditClass";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+}
+@{
+    if (ViewData["error"] != null)
+    {
+        <a>@ViewData["error"]</a>
+    }
 }
 
 <h1>EditClass</h1>

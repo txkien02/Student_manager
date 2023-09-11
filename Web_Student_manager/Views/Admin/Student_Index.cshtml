@@ -1,0 +1,91 @@
+﻿@{
+    ViewData["Title"] = "Student_Index";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    
+}
+
+@model IEnumerable<Data.Models.DTO.ClassModel>
+
+ 
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quản lý học sinh</title>
+</head>
+<body>
+    @{
+        if (ViewData["error"] != null)
+        {
+            <a>@ViewData["error"]</a>
+        }
+    }
+    <h1>Quản lý học sinh</h1>
+
+    <!-- Form tìm kiếm và lọc -->
+    <form asp-action="Student_Index" method="post">
+        <div>
+            <label for="searchOption">Tìm kiếm theo:</label>
+            <select id="searchOption" name="searchOption">
+                <option value="studentId">Mã số học sinh</option>
+                <option value="studentName">Tên học sinh</option>
+            </select>
+            <div>
+                <label for="classDropdown">Lớp:</label>
+                <select id="classDropdown" name="classId">
+                    <option value="">Tất cả</option>
+                    @foreach (var cls in Model)
+                    {
+                        <option value="@cls.Id">@cls.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div>
+            <label for="searchValue">Nội dung tìm kiếm:</label>
+            <input type="text" id="searchValue" name="searchValue" />
+        </div>
+        <div>
+            <button type="submit">Tìm kiếm và Lọc</button>
+        </div>
+    </form>
+    @if (ViewData["Student"] != null)
+    {
+        var student = ViewData["Student"] as IEnumerable<Data.Models.DTO.RegistrationModel>;
+        <table>
+            <thead>
+                <tr>
+                    <th>UserName</th>
+                    <th>Name</th>
+                    
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in student)
+                {
+                    <tr>
+                        <td>@item.UserName</td>
+                        <td>@item.Name</td>
+                        
+                        <td>
+                            <a asp-action="EditStudent" asp-route-username="@item.UserName">Sửa</a> |
+                            <form asp-action="DeleteStudent" method="post" class="delete-form" asp-route-username="@item.UserName">
+                                <button type="submit" class="delete-button" onclick="return confirm('Are you sure you want to delete this class?')">Xoá</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+
+        <a asp-action="CreateStudent">Thêm lớp học mới</a>
+    }
+    else
+    {
+        <a>@ViewData["error"]</a>
+    }
+    
+</body>
+</html>

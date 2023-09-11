@@ -15,6 +15,11 @@ namespace Web_Student_manager.Filters
         {
             Arguments = new object[] { role };
         }
+        public AuthorFilterAttribute() : base(typeof(AuthorFilter))
+        {
+            // Pass null or empty string as the role in this case
+            Arguments = new object[] { null }; // or Arguments = new object[] { string.Empty };
+        }
     }
     public class AuthorFilter :  IAsyncAuthorizationFilter
     {
@@ -26,7 +31,7 @@ namespace Web_Student_manager.Filters
             _httpClientFactory = httpClientFactory;
             _role = role;
         }
-        
+
 
         public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
@@ -45,16 +50,34 @@ namespace Web_Student_manager.Filters
                     var jsonResponse = await response.Content.ReadAsStringAsync();
                     var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse); 
 
-                    if (apiResponse.Message == _role)
+                    if(!string.IsNullOrEmpty(_role))
                     {
-                        // Điều kiện cho vai trò phù hợp
+                        if (apiResponse.Message == _role)
+                        {
+                            // Điều kiện cho vai trò phù hợp
+                        }
+                        else
+                        {
+                            context.Result = new UnauthorizedResult(); // Không có vai trò phù hợp, trả về lỗi 401 Unauthorized
+                            context.HttpContext.Response.Redirect("/Login/Index"); // Chuyển hướng đến trang đăng nhập
+                            return;
+                        }
                     }
                     else
                     {
-                        context.Result = new UnauthorizedResult(); // Không có vai trò phù hợp, trả về lỗi 401 Unauthorized
-                        context.HttpContext.Response.Redirect("/Login/Index"); // Chuyển hướng đến trang đăng nhập
-                        return;
+                        if (apiResponse.Message == "Admin"|| apiResponse.Message == "User")
+                        {
+                            // Điều kiện cho vai trò phù hợp
+                        }
+                        else
+                        {
+                            context.Result = new UnauthorizedResult(); // Không có vai trò phù hợp, trả về lỗi 401 Unauthorized
+                            context.HttpContext.Response.Redirect("/Login/Index"); // Chuyển hướng đến trang đăng nhập
+                            return;
+                        }
                     }
+
+                    
                 }
                 else
                 {

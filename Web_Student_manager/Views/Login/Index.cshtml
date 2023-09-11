@@ -2,7 +2,7 @@
 
 @{
     
-    Layout = null;
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <!DOCTYPE html >
@@ -20,13 +20,25 @@
             font-family: 'Poppins', sans-serif;
         }
 
+        section, html {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('C:/Users/DELL/Downloads/Student_manager-master/Student_manager-master/original.jpg');
+            background-size: cover;
+        }
+
         section {
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             width: 100%;
-            background-image: url('https://vapa.vn/wp-content/uploads/2022/12/hinh-nen-chill-006.jpg');
+            background-image: url('https://cdn.discordapp.com/attachments/576949600402014210/1146642608660164618/background6.jpg');
             background-position: center;
             background-size: cover;
         }

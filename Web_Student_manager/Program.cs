@@ -12,6 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddMvc();
 builder.Services.AddHttpClient();
+builder.Services.AddHttpContextAccessor();
+
 
 
 builder.Services.AddSession(option =>
@@ -40,6 +42,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
         name: "default",
-        pattern: "{controller=Login}/{action=Index}/{id?}"); ;
+        pattern: "{controller=Home}/{action=Index}/{id?}"); ;
 
 app.Run();
