@@ -58,6 +58,7 @@ namespace Web_Student_manager.Controllers
 
         public IActionResult CreateClass()
         {
+            
             return View();
         }
 
