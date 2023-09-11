@@ -3,7 +3,7 @@
     public class ChangeInfoModel
     {
         
-        public string Address { get; set; }
+        public string? Address { get; set; }
         public byte[]? Avatar { get; set; }
     }
 }

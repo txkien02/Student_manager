@@ -20,7 +20,7 @@ namespace Web_Student_manager.Controllers
 
     [AuthorFilter("Admin")]
     public class AdminController : Controller
-    {
+    {   
         // GET: AdminController
         private readonly HttpClient _httpClient;
 

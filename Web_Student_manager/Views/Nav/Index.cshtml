@@ -1,5 +1,180 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model Data.Models.DTO.RegistrationModel
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor _httpContext
+
 @{
+    var Role = _httpContext.HttpContext.Session.GetString("UserRole");
+    ViewData["Title"] = "Info";
+    if (Role == "Admin")
+    {
+        Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    }
+    else if (Role == "User")
+    {
+        Layout = "~/Views/Shared/_LayoutUser.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+
+    
 }
+@{
+    if (ViewData["error"] != null)
+    {
+        <a>@ViewData["error"]</a>
+    }
+}
+
+<h1>Info</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Index" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group form-check">
+                <div class="form-group">
+                    <label for="img">Avatar</label>
+                    <input type="file" class="form-control" name="img" id="imgInput" accept="image/*" disabled />
+                </div>
+                <div class="form-group">
+                    @if (Model.Avatar != null && Model.Avatar.Length > 0)
+                    {
+                        var base64 = Convert.ToBase64String(Model.Avatar);
+                        var imgSrc = $"data:image/png;base64,{base64}"; // Change "image/png" to match the image type if needed
+                        <img id="uploadedImage" src="@imgSrc" alt="Avatar" style="max-width: 300px;" />
+                    }
+                    else
+                    {
+                        <img id="uploadedImage" src="" alt="Hình ảnh tải lên" style="max-width: 300px; display: none;" />
+                    }
+                </div>
+            </div>
+            <div class="form-group">
+                <label asp-for="UserName" class="control-label"></label>
+                <input asp-for="UserName" value=@Model.UserName class="form-control" disabled />
+                <span asp-validation-for="UserName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" value=@Model.Name class="form-control" disabled />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" value=@Model.Email class="form-control" disabled />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DOB" class="control-label"></label>
+                <input asp-for="DOB" value="@Model.DOB.ToString("yyyy-MM-dd")" class="form-control" type="date" disabled />
+                <span asp-validation-for="DOB" class="text-danger"></span>
+            </div>
+            <div>
+                <label asp-for="Gender">Gender:</label>
+                <select asp-for="Gender" value=@Model.Gender id="Gender" name="Gender" disabled required>
+                    <option value="0">Male</option>
+                    <option value="1">Female</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Address" class="control-label"></label>
+                <input asp-for="Address" value=@Model.Address class="form-control" name="address" id="Address" disabled />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Status" class="form-check-label">Status</label>
+                <input class="form-check-input" asp-for="Status" value=@Model.Status disabled />
+                <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+            <div>
+                <label asp-for="ClassID" class="control-label"></label>
+                <input asp-for="ClassID" value=@Model.ClassID class="form-control" disabled />
+                <span asp-validation-for="Address" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" id="saveButton" style="display: none;" />
+            </div>
+        </form>
+            <div class="form-group">
+                <input type="submit" value="Edit" class="btn btn-primary" id="editButton" onclick="toggleEditMode()" />
+            </div>
+        <a asp-action="ChangePassword">Change Password</a>
+    </div>
+</div>
+
+@*<div>
+    <a asp-action="Index">Back to List</a>
+</div>*@
+
+<script>
+    function toggleEditMode() {
+        var editButton = document.getElementById('editButton');
+        var saveButton = document.getElementById('saveButton');
+        var imgInput = document.getElementById('imgInput');
+        var addressInput = document.getElementById('Address');
+
+        if (editButton.style.display === 'none') {
+            // Enter edit mode
+            editButton.style.display = 'inline';
+            saveButton.style.display = 'none';
+            imgInput.disabled = true;
+            addressInput.disabled = true;
+        } else {
+            // Exit edit mode
+            editButton.style.display = 'none';
+            saveButton.style.display = 'inline';
+            imgInput.disabled = false;
+            addressInput.disabled = false;
+        }
+    }
+    // Lắng nghe sự kiện khi người dùng chọn tệp hình ảnh
+    document.getElementById('imgInput').addEventListener('change', function (event) {
+        var fileInput = event.target;
+        var uploadedImage = document.getElementById('uploadedImage');
+
+        if (fileInput.files && fileInput.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                // Hiển thị hình ảnh sau khi tải lên
+                uploadedImage.src = e.target.result;
+                uploadedImage.style.display = 'block'; // Hiển thị hình ảnh
+            };
+
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            // Ẩn hình ảnh nếu không có tệp nào được chọn
+            uploadedImage.src = '';
+            uploadedImage.style.display = 'none';
+        }
+    });
+    function validatePassword() {
+        var password = document.getElementById('Password').value;
+        var passwordConfirm = document.getElementById('PasswordConfirm').value;
+
+        if (password !== passwordConfirm) {
+            alert("Mật khẩu và xác nhận mật khẩu phải trùng khớp.");
+            return false;
+        }
+
+        return true;
+    }
+    function previewImage(input) {
+        var uploadedImage = document.getElementById("uploadedImage");
+        uploadedImage.style.display = "block";
+
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                uploadedImage.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+
+</script>

@@ -39,6 +39,7 @@ namespace Student_manager.Controllers
         [Authorize]
         public async Task<IActionResult> ChangePassword(ChangePasswordModel model)
         {
+            string UserName = User.Identity.Name;
             var status = new Status();
             // check validations
             if (!ModelState.IsValid)
@@ -48,7 +49,7 @@ namespace Student_manager.Controllers
                 return Ok(status);
             }
             // lets find the user
-            var user = await userManager.FindByNameAsync(model.Username);
+            var user = await userManager.FindByNameAsync(UserName);
             if(user is null)
             {
                 status.StatusCode = 0;

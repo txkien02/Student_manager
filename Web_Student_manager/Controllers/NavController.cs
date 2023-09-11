@@ -1,83 +1,144 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Data.Models.DTO;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.Net.Http;
+using System.Reflection;
+using System.Text;
+using Web_Student_manager.Filters;
 
 namespace Web_Student_manager.Controllers
 {
+    [AuthorFilter]
     public class NavController : Controller
     {
+        private readonly HttpClient _httpClient;
+        public NavController(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+            _httpClient.BaseAddress = new Uri("https://localhost:7164/api/Nav/"); // Thay đổi địa chỉ API thật của bạn
+        }
         // GET: NavController
-        public ActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
-        }
+            var jwToken = GetTokenFromSession();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
 
-        // GET: NavController/Details/5
-        public ActionResult Details(int id)
-        {
-            return View();
-        }
 
-        // GET: NavController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
+            var response = await _httpClient.GetAsync("GetInfo");
 
-        // POST: NavController/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
-        {
-            try
+            if (response.IsSuccessStatusCode)
             {
-                return RedirectToAction(nameof(Index));
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<RegistrationModel>(jsonResponse);
+
+               
+                return View(apiResponse);
+
             }
-            catch
+            else
             {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
+                ViewData["error"] = apiResponse.Message;
+                return View(null);
+
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Index(string address, IFormFile img)
+        {
+            byte[] img_data = null;
+            if (img != null && img.Length > 0)
+            {
+                // Đọc dữ liệu từ tệp hình ảnh và chuyển đổi thành mảng byte
+                byte[] imageBytes;
+                using (var memoryStream = new MemoryStream())
+                {
+                    img.CopyTo(memoryStream);
+                    imageBytes = memoryStream.ToArray();
+                }
+                img_data = imageBytes;
+            }
+            var info = new ChangeInfoModel
+            {
+                Avatar = img_data,
+                Address = address,
+            };
+            var jwToken = GetTokenFromSession();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+
+            var content = new StringContent(JsonConvert.SerializeObject(info), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PutAsync("ChangeInfo", content);
+            if (response.IsSuccessStatusCode)
+            {
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
+                ViewData["error"] = apiResponse.Message;
+                
+                return View();
+            }
+            
+
+        }
+
+        public IActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordModel model)
+        {
+
+            var jwToken = GetTokenFromSession();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+
+            var content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PutAsync("ChangePassword", content);
+            if (response.IsSuccessStatusCode)
+            {
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
+                ViewData["error"] = apiResponse.Message;
+
                 return View();
             }
         }
-
-        // GET: NavController/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
-
-        // POST: NavController/Edit/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<IActionResult> Logout()
         {
-            try
+            var jwToken = GetTokenFromSession();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+
+            var response = await _httpClient.PostAsync("Logout",null);
+            if (response.IsSuccessStatusCode)
             {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+                
+                HttpContext.Session.Clear();
+                return RedirectToAction("Index","Login");
+            }else return RedirectToAction("Index", "Login");
         }
 
-        // GET: NavController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
 
-        // POST: NavController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        private string GetTokenFromSession()
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            // Lấy token từ session bằng cách sử dụng IHttpContextAccessor
+            var session = HttpContext.Session;
+            var token = session.GetString("JWToken");
+
+            return string.IsNullOrEmpty(token) ? string.Empty : token;
         }
+        
+
     }
 }
