@@ -20,7 +20,7 @@ namespace Data.Models.DTO
         [Required]
         public string? Address { get; set; }
         [Required]
-        public bool Status { get; set; }
+        public bool  Status { get; set; }
         
         public byte[]? Avatar { get; set; }
         

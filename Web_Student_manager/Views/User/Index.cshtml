@@ -36,3 +36,10 @@ else
     </div>
 }
 </div>
+
+@if (ViewData["error"] != null)
+{
+    <br />
+    <br />
+    <label>@ViewData["error"]</label>
+}

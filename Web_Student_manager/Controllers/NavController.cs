@@ -89,7 +89,8 @@ namespace Web_Student_manager.Controllers
 
         public IActionResult ChangePassword()
         {
-            return View();
+            var password = new ChangePasswordModel();
+            return View(password);
         }
 
         [HttpPost]
@@ -111,7 +112,7 @@ namespace Web_Student_manager.Controllers
                 var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
                 ViewData["error"] = apiResponse.Message;
 
-                return View();
+                return View(model);
             }
         }
         [HttpPost]

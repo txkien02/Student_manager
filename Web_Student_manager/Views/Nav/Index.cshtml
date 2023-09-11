@@ -106,6 +106,12 @@
     </div>
 </div>
 
+@if (ViewData["error"] != null)
+{
+    <br />
+    <br />
+    <label>@ViewData["error"]</label>
+}
 @*<div>
     <a asp-action="Index">Back to List</a>
 </div>*@

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Rewrite;
+using Microsoft.DotNet.MSIdentity.Shared;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Common;
@@ -34,7 +35,6 @@ namespace Web_Student_manager.Controllers
 
             var jwToken = GetTokenFromSession();
             _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
-
 
             var response = await _httpClient.GetAsync("GetAllClass");
 
@@ -117,7 +117,7 @@ namespace Web_Student_manager.Controllers
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
                 ViewData["error"] = apiResponse.Message;
-                return RedirectToAction("Index");
+                return View();
             }
         }
 
@@ -175,7 +175,7 @@ namespace Web_Student_manager.Controllers
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
-                ModelState.AddModelError(string.Empty, apiResponse.Message);
+                ViewData["error"] = apiResponse.Message;
                 return View();
             }
 
@@ -186,19 +186,10 @@ namespace Web_Student_manager.Controllers
         {
             var jwToken = GetTokenFromSession();
             _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
-
-
-            var response = await _httpClient.GetAsync("GetAllClass");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var jsonResponse = await response.Content.ReadAsStringAsync();
-                var apiResponse = JsonConvert.DeserializeObject<IEnumerable<ClassModel>>(jsonResponse);
-
-                return View(apiResponse);
-
-            }
-            return View(null);
+            var getclass = await getclasss();
+            ViewData["Class"] = (IEnumerable<Data.Models.DTO.ClassModel>)getclass;
+            IEnumerable<RegistrationModel>? model = null;
+            return View(model);
         }
 
         [HttpPost]
@@ -226,19 +217,20 @@ namespace Web_Student_manager.Controllers
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<IEnumerable<RegistrationModel>>(jsonResponse);
-                ViewData["Student"] = apiResponse;
+                
 
-
-
-                var classes = await getclasss();
-                return View(classes);
+                var getclass = await getclasss();
+                ViewData["Class"] = (IEnumerable<Data.Models.DTO.ClassModel>)getclass;
+                return View(apiResponse);
             }
             else
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
                 ViewData["error"] = apiResponse.Message;
-                return View((IEnumerable <ClassModel> )getclasss());
+                var getclass = await getclasss();
+                ViewData["Class"] = (IEnumerable<Data.Models.DTO.ClassModel>)getclass;
+                return View();
             }
            
         }
@@ -250,7 +242,8 @@ namespace Web_Student_manager.Controllers
 
             var getclass = await getclasss();
             ViewData["Class"] = (IEnumerable <Data.Models.DTO.ClassModel>) getclass;
-            return View();
+            var model = new RegistrationModel();
+            return View(model);
         }
 
         [HttpPost]
@@ -284,8 +277,9 @@ namespace Web_Student_manager.Controllers
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
                 ViewData["error"] = apiResponse.Message;
-                
-                return View((IEnumerable<ClassModel>)getclasss());
+                var getclass = await getclasss();
+                ViewData["Class"] = (IEnumerable<Data.Models.DTO.ClassModel>)getclass;
+                return View(model);
             }
 
 
@@ -316,7 +310,7 @@ namespace Web_Student_manager.Controllers
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
                 ViewData["error"] = apiResponse.Message;
-                return View(null);
+                return View();
 
             }
         }
@@ -345,6 +339,9 @@ namespace Web_Student_manager.Controllers
             var response = await _httpClient.PutAsync("EditStudent/"+model.UserName, content);
             if (response.IsSuccessStatusCode)
             {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
+                ViewData["error"] = apiResponse.Message;
                 return RedirectToAction("Student_Index");
             }
             else
@@ -361,9 +358,9 @@ namespace Web_Student_manager.Controllers
 
 
 
-        
 
-        [HttpPost]
+
+        [HttpPost()]
         public async Task<IActionResult> DeleteStudent(string UserName)
         {
             var jwToken = GetTokenFromSession();
@@ -377,6 +374,7 @@ namespace Web_Student_manager.Controllers
 
             if (response.IsSuccessStatusCode)
             {
+                ViewData["error"] = response.RequestMessage;
                 return RedirectToAction("Student_Index");
 
             }
@@ -385,8 +383,8 @@ namespace Web_Student_manager.Controllers
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
                 ViewData["error"] = apiResponse.Message;
-
                 return RedirectToAction("Student_Index");
+
             }
 
 

@@ -167,6 +167,7 @@
     </style>
 </head>
 <body>
+
     @if (!string.IsNullOrEmpty(ViewBag.Message))
     {
         <div class="alert alert-danger">
@@ -176,7 +177,7 @@
     <section>
         <div class="form-box">
             <div class="form-value">
-                <form asp-action="Login" method="post">
+                <form asp-action="Index" method="post">
                     <h2>Login</h2>
                     <div class="inputbox">
                         <ion-icon name="person-outline"></ion-icon>
@@ -185,11 +186,17 @@
                     </div>
                     <div class="inputbox">
                         <ion-icon name="lock-closed-outline"></ion-icon>
-                        <input type="password" id="Password" name="Password" asp-for="Password" required>
+                        <input value="@Model.Password" type="password" id="Password" name="Password" asp-for="Password" required>
                         <label for="Password">Password</label>
                     </div>
                     <button type="submit">Log in</button>
                 </form>
+                @if (ViewData["error"] != null)
+                {
+                    <br/>
+                    <br/>
+                    <label>@ViewData["error"]</label>
+                }
             </div>
         </div>
     </section>

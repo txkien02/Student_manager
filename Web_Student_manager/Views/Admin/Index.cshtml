@@ -9,12 +9,7 @@
     <title>Danh sách lớp học</title>
 </head>
 <body>
-    @{
-        if (ViewData["error"] != null)
-        {
-            <a>@ViewData["error"]</a>
-        }
-    }
+    
     <h1>Danh sách lớp học</h1>
     
     <table>
@@ -47,6 +42,12 @@
 
     <a asp-action="CreateClass">Thêm lớp học mới</a>
     
+    @if (ViewData["error"] != null)
+    {
+        <br />
+        <br />
+        <label>@ViewData["error"]</label>
+    }
 
     <style>
         /* Reset CSS */

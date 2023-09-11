@@ -43,12 +43,12 @@ namespace Web_Student_manager.Controllers
 
                 }
             }
-
-            return View();
+            LoginModel model = new LoginModel();
+            return View(model);
         }
 
-
-        public async Task<IActionResult> Login()
+        [HttpPost]
+        public async Task<IActionResult> Index(string Username, string Password)
         {
             // Tạo một instance của HttpClient sử dụng IHttpClientFactory
             var httpClient = _httpClientFactory.CreateClient();
@@ -56,8 +56,8 @@ namespace Web_Student_manager.Controllers
             // Tạo model và gửi yêu cầu POST đến API
             var model = new LoginModel
             {
-                Username = HttpContext.Request.Form["Username"].ToString(),
-                Password = HttpContext.Request.Form["Password"].ToString()
+                Username = Username,
+                Password = Password
             };
 
             var content = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
@@ -91,18 +91,18 @@ namespace Web_Student_manager.Controllers
                 else
                 {
                     // Xử lý trường hợp đăng nhập thất bại
-                    ViewBag.Message = apiResponse.Message;
-                    return RedirectToAction("Index");
+                    ViewData["error"] = apiResponse.Message;
+                    return View(model);
                 }
             }
             else
             {
                 // Xử lý trường hợp không thành công khi gửi yêu cầu đăng nhập
-                ViewBag.Message = "Có lỗi xảy ra khi đăng nhập.";
-                return RedirectToAction("Index");
+                ViewData["error"] = response.RequestMessage;
+                return View(model);
             }
 
-            return View();
+            return View(model); 
         }
 
         private string GetTokenFromSession()
@@ -111,7 +111,7 @@ namespace Web_Student_manager.Controllers
             var session = HttpContext.Session;
             var token = session.GetString("JWToken");
 
-            return string.IsNullOrEmpty(token) ? string.Empty : token;
+            return string.IsNullOrEmpty(token)  ? string.Empty : token;
         }
     }
 }

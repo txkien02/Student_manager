@@ -1,10 +1,10 @@
 ﻿@{
     ViewData["Title"] = "Student_Index";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
-    
+    var classes = ViewData["Class"] as IEnumerable<Data.Models.DTO.ClassModel>;
 }
 
-@model IEnumerable<Data.Models.DTO.ClassModel>
+@model IEnumerable<Data.Models.DTO.RegistrationModel>;
 
  
 
@@ -23,7 +23,7 @@
     <h1>Quản lý học sinh</h1>
 
     <!-- Form tìm kiếm và lọc -->
-    <form asp-action="Student_Index" method="post">
+    <form asp-action="Student_Index" method="post" >
         <div>
             <label for="searchOption">Tìm kiếm theo:</label>
             <select id="searchOption" name="searchOption">
@@ -34,7 +34,7 @@
                 <label for="classDropdown">Lớp:</label>
                 <select id="classDropdown" name="classId">
                     <option value="">Tất cả</option>
-                    @foreach (var cls in Model)
+                    @foreach (var cls in @classes)
                     {
                         <option value="@cls.Id">@cls.Name</option>
                     }
@@ -49,25 +49,24 @@
             <button type="submit">Tìm kiếm và Lọc</button>
         </div>
     </form>
-    @if (ViewData["Student"] != null)
+    @if (Model != null)
     {
-        var student = ViewData["Student"] as IEnumerable<Data.Models.DTO.RegistrationModel>;
         <table>
             <thead>
                 <tr>
                     <th>UserName</th>
                     <th>Name</th>
-                    
+
                     <th>Thao tác</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var item in student)
+                @foreach (var item in Model)
                 {
                     <tr>
                         <td>@item.UserName</td>
                         <td>@item.Name</td>
-                        
+
                         <td>
                             <a asp-action="EditStudent" asp-route-username="@item.UserName">Sửa</a> |
                             <form asp-action="DeleteStudent" method="post" class="delete-form" asp-route-username="@item.UserName">
@@ -79,13 +78,18 @@
 
             </tbody>
         </table>
+    }
+    
 
-        <a asp-action="CreateStudent">Thêm lớp học mới</a>
-    }
-    else
+    <a asp-action="CreateStudent">Thêm lớp học mới</a>
+    @if (ViewData["error"] != null)
     {
-        <a>@ViewData["error"]</a>
+        <br />
+        <br />
+        <label>@ViewData["error"]</label>
     }
+
+
     
 </body>
 </html>
