@@ -14,7 +14,7 @@
 
 <h1>EditClass</h1>
 
-<h4>ClassModel</h4>
+
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -43,8 +43,10 @@
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+<div style="margin-top: 15px">
+    <a asp-action="Index" style="    border: 1px solid;
+    padding: 7px;
+    border-radius: 5px;">Backdra</a>
 </div>
 
 @if (ViewData["error"] != null)
@@ -53,3 +55,8 @@
     <br />
     <label>@ViewData["error"]</label>
 }
+<style>
+    .form-group {
+        margin-bottom: 20px;
+    }
+</style>

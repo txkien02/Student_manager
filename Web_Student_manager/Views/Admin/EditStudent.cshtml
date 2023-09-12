@@ -19,12 +19,12 @@
     <div class="col-md-4">
         <form asp-action="EditStudent" method="post" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group form-check">
-                <div class="form-group">
+            <div class="form-group form-check" style="padding-left: 0px">
+                <div>
                     <label for="img">Avatar</label>
                     <input type="file" class="form-control" name="img" id="imgInput" accept="image/*" />
                 </div>
-                <div class="form-group">
+                <div>
                     @if (Model.Avatar != null && Model.Avatar.Length > 0)
                     {
                         var base64 = Convert.ToBase64String(Model.Avatar);
@@ -85,7 +85,7 @@
                 <input asp-for="PasswordConfirm" id="PasswordConfirm" type="password" class="form-control" />
                 <span asp-validation-for="PasswordConfirm" class="text-danger"></span>
             </div>
-            <div>
+            <div class="form-group">
                 @if (classes != null)
                 {
                     <label for="classDropdown">Lớp:</label>
@@ -117,8 +117,10 @@
     <label>@ViewData["error"]</label>
 }
 
-<div>
-    <a asp-action="Student_Index">Back to List</a>
+<div style="margin-top: 15px;">
+    <a asp-action="Student_Index" style=" border: 1px solid;
+    padding: 7px;
+    border-radius: 5px;">Back</a>
 </div>
 
 <script>
@@ -169,3 +171,8 @@
 
 
 </script>
+<style>
+    .form-group {
+        margin-bottom: 15px;
+    }
+</style>

@@ -17,7 +17,7 @@
 <div id="result" style="@(ViewBag.result ? "display: block;" : "display: none;")">
 @if (Model != null)
 {
-    <div>
+     <div style="margin-top: 20px;">
         <h2>Kết quả:</h2>
         <p>Mã số học sinh: @Model.Name</p>
         <p>Email: @Model.Email</p>
@@ -43,3 +43,8 @@ else
     <br />
     <label>@ViewData["error"]</label>
 }
+<style>
+    p {
+        font-size: 18px;
+    }
+</style>

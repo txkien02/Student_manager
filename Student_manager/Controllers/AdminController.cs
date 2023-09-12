@@ -198,7 +198,7 @@ namespace Student_manager.Controllers
             }
             if (!string.IsNullOrWhiteSpace(Name))
             {
-                usersInRole = usersInRole.Where(s => s.Name.Contains(Name)).ToList();
+                usersInRole = usersInRole.Where(s => s.Name.ToLower().Contains(Name.ToLower())).ToList();
             }
 
             return Ok(usersInRole);

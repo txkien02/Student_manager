@@ -50,8 +50,12 @@ namespace Student_manager.Controllers
             var user = await userManager.FindByNameAsync(UserName);
             if (user != null)
             {
+                if(model.Avatar!= null)
+                {
+
+                    user.Avatar = model.Avatar; 
+                }
                 user.Address = model.Address;
-                user.Avatar = model.Avatar;
 
                 var result = await userManager.UpdateAsync(user);
                 if (!result.Succeeded)

@@ -4,7 +4,7 @@
 
 @{
     var Role = _httpContext.HttpContext.Session.GetString("UserRole");
-    ViewData["Title"] = "Info";
+    ViewData["Title"] = "Thông tin người dùng";
     if (Role == "Admin")
     {
         Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
@@ -28,7 +28,7 @@
     }
 }
 
-<h1>Info</h1>
+<h1>Thông tin cá nhân</h1>
 
 <hr />
 <div class="row">
@@ -95,13 +95,16 @@
                 <input asp-for="ClassID" value=@Model.ClassID class="form-control" disabled />
                 <span asp-validation-for="Address" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" id="saveButton" style="display: none;" />
+            
+            <div class="form-group d-flex align-items-center">
+               <input type="submit" value="Save" class="btn btn-primary" id="saveButton" style="display: none;" />
+                <a asp-action="Index" id="cancel" class="btn btn-secondary ml-2" style="border: 1px solid; padding: 7px; border-radius: 5px; display: none;">Cancel</a>
             </div>
         </form>
             <div class="form-group">
                 <input type="submit" value="Edit" class="btn btn-primary" id="editButton" onclick="toggleEditMode()" />
-            </div>
+            </div>   
+
         <a asp-action="ChangePassword">Change Password</a>
     </div>
 </div>
@@ -121,18 +124,22 @@
         var editButton = document.getElementById('editButton');
         var saveButton = document.getElementById('saveButton');
         var imgInput = document.getElementById('imgInput');
+        var cancelEditButton = document.getElementById('cancel');
         var addressInput = document.getElementById('Address');
 
         if (editButton.style.display === 'none') {
             // Enter edit mode
             editButton.style.display = 'inline';
+            cancelEditButton.style.display = 'inline';
             saveButton.style.display = 'none';
             imgInput.disabled = true;
             addressInput.disabled = true;
+
         } else {
             // Exit edit mode
             editButton.style.display = 'none';
             saveButton.style.display = 'inline';
+            cancelEditButton.style.display = 'inline';
             imgInput.disabled = false;
             addressInput.disabled = false;
         }
@@ -169,6 +176,7 @@
 
         return true;
     }
+
     function previewImage(input) {
         var uploadedImage = document.getElementById("uploadedImage");
         uploadedImage.style.display = "block";
@@ -184,3 +192,8 @@
 
 
 </script>
+<style>
+    .form-group {
+        margin-bottom: 15px;
+    }
+</style>

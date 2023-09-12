@@ -49,6 +49,7 @@ namespace Web_Student_manager.Controllers
         [HttpPost]
         public async Task<IActionResult> Index(string address, IFormFile img)
         {
+            var info = new ChangeInfoModel();
             byte[] img_data = null;
             if (img != null && img.Length > 0)
             {
@@ -60,12 +61,21 @@ namespace Web_Student_manager.Controllers
                     imageBytes = memoryStream.ToArray();
                 }
                 img_data = imageBytes;
+                info = new ChangeInfoModel
+                {
+                    Avatar = img_data,
+                    Address = address,
+                };
             }
-            var info = new ChangeInfoModel
+            else
             {
-                Avatar = img_data,
-                Address = address,
-            };
+                info = new ChangeInfoModel
+                {
+                    Address = address
+                };
+
+            }
+
             var jwToken = GetTokenFromSession();
             _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
 

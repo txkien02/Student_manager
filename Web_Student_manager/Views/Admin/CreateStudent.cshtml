@@ -8,17 +8,16 @@
 
 <h1>CreateStudent</h1>
 
-<h4>RegistrationModel</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
         <form asp-action="CreateStudent" method="post" enctype="multipart/form-data">
-            <div class="form-group form-check">
-                <div class="form-group">
+            <div class="form-group form-check" style="padding-left: 0px">
+                <div>
                     <label for="img">Avatar</label>
                     <input type="file" class="form-control" name="img" id="imgInput" accept="image/*" />
                 </div>
-                <div class="form-group">
+                <div>
                     <img id="uploadedImage" src="" alt="Hình ảnh tải lên" style="max-width: 300px; display: none;" />
                 </div>
 
@@ -94,8 +93,10 @@
     </div>
 </div>
 
-<div>
-    <a asp-action="Student_Index">Back to List</a>
+<div style="margin-top: 15px;">
+    <a asp-action="Student_Index" style=" border: 1px solid;
+    padding: 7px;
+    border-radius: 5px;">Back</a>
 </div>
 
 @if (ViewData["error"] != null)
@@ -140,3 +141,8 @@
     }
 
 </script>
+<style>
+    .form-group {
+        margin-bottom: 15px;
+    }
+</style>
