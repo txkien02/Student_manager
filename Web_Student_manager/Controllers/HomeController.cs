@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Web_Student_manager.Controllers
 {
+    [Route("")]
     public class HomeController : Controller
     {
         // GET: HomeController

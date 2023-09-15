@@ -10,6 +10,7 @@ using Web_Student_manager.Filters;
 namespace Web_Student_manager.Controllers
 {
     [AuthorFilter]
+    [Route("")]
     public class NavController : Controller
     {
         private readonly HttpClient _httpClient;
@@ -19,6 +20,7 @@ namespace Web_Student_manager.Controllers
             _httpClient.BaseAddress = new Uri("https://localhost:7164/api/Nav/"); // Thay đổi địa chỉ API thật của bạn
         }
         // GET: NavController
+        [Route("info")]
         public async Task<IActionResult> Index()
         {
             var jwToken = GetTokenFromSession();
@@ -45,7 +47,7 @@ namespace Web_Student_manager.Controllers
 
             }
         }
-
+        [Route("info")]
         [HttpPost]
         public async Task<IActionResult> Index(string address, IFormFile img)
         {
@@ -96,13 +98,14 @@ namespace Web_Student_manager.Controllers
             
 
         }
-
+        [Route("changepassword")]
         public IActionResult ChangePassword()
         {
             var password = new ChangePasswordModel();
             return View(password);
         }
 
+        [Route("changepassword")]
         [HttpPost]
         public async Task<IActionResult> ChangePassword(ChangePasswordModel model)
         {
@@ -125,6 +128,7 @@ namespace Web_Student_manager.Controllers
                 return View(model);
             }
         }
+        [Route("logout")]
         [HttpPost]
         public async Task<IActionResult> Logout()
         {

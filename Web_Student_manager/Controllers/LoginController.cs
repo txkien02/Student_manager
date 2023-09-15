@@ -9,6 +9,7 @@ using System.Reflection;
 
 namespace Web_Student_manager.Controllers
 {
+    [Route("")]
     public class LoginController : Controller
     {
         private readonly IHttpClientFactory _httpClientFactory;
@@ -17,7 +18,7 @@ namespace Web_Student_manager.Controllers
         {
             _httpClientFactory = httpClientFactory;
         }
-
+        [Route("login")]
         public async Task<IActionResult> Index()
         {
             var httpClient = _httpClientFactory.CreateClient();
@@ -46,7 +47,7 @@ namespace Web_Student_manager.Controllers
             LoginModel model = new LoginModel();
             return View(model);
         }
-
+        [Route("login")]
         [HttpPost]
         public async Task<IActionResult> Index(string Username, string Password)
         {

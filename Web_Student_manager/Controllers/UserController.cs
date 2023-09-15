@@ -10,6 +10,7 @@ using Web_Student_manager.Filters;
 
 namespace Web_Student_manager.Controllers
 {
+    [Route("")]
     [AuthorFilter("User")]
     public class UserController : Controller
     {
@@ -20,13 +21,14 @@ namespace Web_Student_manager.Controllers
             _httpClient = httpClient;
             _httpClient.BaseAddress = new Uri("https://localhost:7164/api/User/"); // Thay đổi địa chỉ API thật của bạn
         }
+        [Route("findinfo")]
         // GET: UserController
         public ActionResult Index()
         {
             ViewBag.result = false;
             return View();
         }
-
+        [Route("findinfo")]
         [HttpPost]
         public async Task<ActionResult> Index(string studentID)
         {

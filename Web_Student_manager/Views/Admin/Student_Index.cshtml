@@ -26,24 +26,24 @@
     <form asp-action="Student_Index" method="post" style="display: flex; align-content: center; justify-content: space-between;">
         <div>
             <label for="searchOption">Tìm kiếm theo:</label>
-            <select id="searchOption" name="searchOption">
-                <option value="studentId">Mã số học sinh</option>
-                <option value="studentName">Tên học sinh</option>
+            <select value="@ViewData["SearchOption"]" id="searchOption" name="searchOption">
+                <option value="studentId" selected="@(ViewData["SearchOption"] as string == "studentId")">Mã số học sinh</option>
+                <option value="studentName" selected="@(ViewData["SearchOption"] as string == "studentName")">Tên học sinh</option>
             </select>
         </div>
         <div>
             <label for="classDropdown">Lớp:</label>
-            <select id="classDropdown" name="classId">
-                <option value="">Tất cả</option>
+            <select value="@ViewData["ClassId"]" id="classDropdown" name="classId">
+                <option value="" selected="@(ViewData["ClassId"] == null)">Tất cả</option>
                 @foreach (var cls in @classes)
                 {
-                    <option value="@cls.Id">@cls.Name</option>
+                    <option value="@cls.Id" selected="@(cls.Id == (int?)ViewData["ClassId"])">@cls.Name</option>
                 }
             </select>
         </div>
         <div>
             <label for="searchValue">Nội dung tìm kiếm:</label>
-            <input type="text" id="searchValue" name="searchValue" />
+            <input value="@ViewData["SearchValue"]" type="text" id="searchValue" name="searchValue" />
         </div>
         <div>
             <button type="submit">Tìm kiếm và Lọc</button>

@@ -18,18 +18,20 @@ using Web_Student_manager.Filters;
 
 namespace Web_Student_manager.Controllers
 {
-
+    [Route("")]
     [AuthorFilter("Admin")]
     public class AdminController : Controller
     {   
         // GET: AdminController
         private readonly HttpClient _httpClient;
+        
 
         public AdminController(HttpClient httpClient)
         {
             _httpClient = httpClient;
             _httpClient.BaseAddress = new Uri("https://localhost:7164/api/Admin/"); // Thay đổi địa chỉ API thật của bạn
         }
+        [Route("class")]
         public async Task<ActionResult> Index()
         {
 
@@ -55,13 +57,13 @@ namespace Web_Student_manager.Controllers
 
             }
         }
-
+        [Route("createclass")]
         public IActionResult CreateClass()
         {
             
             return View();
         }
-
+        [Route("createclass")]
         [HttpPost]
         public async Task<IActionResult> CreateClass(ClassModel model)
         {
@@ -94,7 +96,7 @@ namespace Web_Student_manager.Controllers
                 return View(model);
             }
         }
-
+        [Route("editclass/{id}")]
         public async Task<IActionResult> EditClass(int id)
         {
             var jwToken = GetTokenFromSession();
@@ -121,7 +123,7 @@ namespace Web_Student_manager.Controllers
                 return View();
             }
         }
-
+        [Route("editclass/{id}")]
         // Action để sửa thông tin lớp học
         [HttpPost]
         public async Task<IActionResult> EditClass(ClassModel model)
@@ -154,7 +156,7 @@ namespace Web_Student_manager.Controllers
 
             
         }
-
+        [Route("class")]
         [HttpPost]
         public async Task<IActionResult> Index(int id)
         {
@@ -183,8 +185,18 @@ namespace Web_Student_manager.Controllers
 
         }
 
-        public async Task<IActionResult> Student_Index()
+
+        [Route("findstudent")]
+        public async Task<IActionResult> Student_Index(bool isCallBack = false)
         {
+            if (isCallBack)
+            {
+                var json = HttpContext.Session.GetString("FactorySearch");
+                var search = JsonConvert.DeserializeObject<SearchModel>(json);
+                isCallBack = false;
+                return await Student_Index(search.SearchOption, search.SearchValue, (Int32)search.ClassId);
+            }
+            HttpContext.Session.Remove("FactorySearch");
             var jwToken = GetTokenFromSession();
             _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
             var getclass = await getclasss();
@@ -192,7 +204,7 @@ namespace Web_Student_manager.Controllers
             IEnumerable<RegistrationModel>? model = null;
             return View(model);
         }
-
+        [Route("findstudent")]
         [HttpPost]
         public async Task<IActionResult> Student_Index(string searchOption, string searchValue, int classId)
         {
@@ -209,9 +221,24 @@ namespace Web_Student_manager.Controllers
             {
                 param += "&ClassID=" + classId;
             }
+            // Set the values in ViewData with consistent keys
+            ViewData["SearchOption"] = searchOption;
+            ViewData["SearchValue"] = searchValue;
+            ViewData["ClassId"] = classId;
 
-            var jwToken = GetTokenFromSession();
-            _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+            var search = new SearchModel
+            {
+                SearchOption = searchOption,
+                SearchValue = searchValue,
+                ClassId = classId
+            };
+            var jsonString = JsonConvert.SerializeObject(search);
+            HttpContext.Session.SetString("FactorySearch", jsonString);
+
+            
+                var jwToken = GetTokenFromSession();
+                _httpClient.DefaultRequestHeaders.Add("Authorization", "Bearer " + jwToken);
+            
 
             var response = await _httpClient.GetAsync("SearchStudents?" + param);
             if (response.IsSuccessStatusCode)
@@ -235,7 +262,7 @@ namespace Web_Student_manager.Controllers
             }
            
         }
-
+        [Route("createstudent")]
         public async Task<IActionResult> CreateStudent()
         {
             var jwToken = GetTokenFromSession();
@@ -246,7 +273,7 @@ namespace Web_Student_manager.Controllers
             var model = new RegistrationModel();
             return View(model);
         }
-
+        [Route("createstudent")]
         [HttpPost]
         public async Task<IActionResult> CreateStudent(RegistrationModel model)
         {
@@ -271,7 +298,7 @@ namespace Web_Student_manager.Controllers
             if (response.IsSuccessStatusCode)
             {
 
-                return RedirectToAction("Student_Index");
+                return RedirectToAction("Student_Index", new { isCallBack = true });
             }
             else
             {
@@ -286,7 +313,7 @@ namespace Web_Student_manager.Controllers
 
             
         }
-
+        [Route("editstudent/{username}")]
         public async Task<IActionResult> EditStudent(string UserName)
         {
 
@@ -315,6 +342,7 @@ namespace Web_Student_manager.Controllers
 
             }
         }
+        [Route("editstudent/{username}")]
         [HttpPost]
         public async Task<IActionResult> EditStudent(RegistrationModel model) {
 
@@ -343,7 +371,10 @@ namespace Web_Student_manager.Controllers
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
                 ViewData["error"] = apiResponse.Message;
-                return RedirectToAction("Student_Index");
+                //var json = HttpContext.Session.GetString("FactorySearch");
+                //var search = JsonConvert.DeserializeObject<SearchModel>(json);
+                //return await Student_Index(search.SearchOption, search.SearchValue, (Int32)search.ClassId);
+                return RedirectToAction("Student_Index",new { isCallBack = true});
             }
             else
             {
@@ -360,7 +391,7 @@ namespace Web_Student_manager.Controllers
 
 
 
-
+        [Route("deletestudent/{username}")]
         [HttpPost()]
         public async Task<IActionResult> DeleteStudent(string UserName)
         {
@@ -376,15 +407,14 @@ namespace Web_Student_manager.Controllers
             if (response.IsSuccessStatusCode)
             {
                 ViewData["error"] = response.RequestMessage;
-                return RedirectToAction("Student_Index");
-
+                return RedirectToAction("Student_Index", new { isCallBack = true });
             }
             else
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 var apiResponse = JsonConvert.DeserializeObject<Status>(jsonResponse);
                 ViewData["error"] = apiResponse.Message;
-                return RedirectToAction("Student_Index");
+                return RedirectToAction("Student_Index", new { isCallBack = true });
 
             }
 
@@ -405,6 +435,7 @@ namespace Web_Student_manager.Controllers
             }
             return null;
         }
+        
 
         private string GetTokenFromSession()
         {

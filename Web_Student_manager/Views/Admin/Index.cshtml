@@ -15,7 +15,6 @@
     <table>
         <thead>
             <tr>
-                <th>Mã lớp</th>
                 <th>Tên lớp</th>
                 <th>Tổng số học sinh</th>
                 <th>Thao tác</th>
@@ -25,7 +24,6 @@
             @foreach (var item in Model)
             {
                 <tr>
-                    <td>@item.Id</td>
                     <td>@item.Name</td>
                     <td>@item.TotalStudents</td>
                     <td style="display: flex; align-items: center;">
